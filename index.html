@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Votación - Creadores en Desafío</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #002366, #f9a602);
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #ffffff;
+    }
+    .nominado {
+      background-color: #ffffff10;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px auto;
+      max-width: 400px;
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    button {
+      background-color: #f9a602;
+      color: #000;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Votación - Creadores en Desafío</h1>
+  <form id="voteForm">
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 1"><br>
+      <label><input type="radio" name="voto" value="anon1"> Anónimo 1</label>
+    </div>
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 2"><br>
+      <label><input type="radio" name="voto" value="anon2"> Anónimo 2</label>
+    </div>
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 3"><br>
+      <label><input type="radio" name="voto" value="anon3"> Anónimo 3</label>
+    </div>
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 4"><br>
+      <label><input type="radio" name="voto" value="anon4"> Anónimo 4</label>
+    </div>
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 5"><br>
+      <label><input type="radio" name="voto" value="anon5"> Anónimo 5</label>
+    </div>
+    <div class="nominado">
+      <img src="https://via.placeholder.com/100" alt="Anónimo 6"><br>
+      <label><input type="radio" name="voto" value="anon6"> Anónimo 6</label>
+    </div>
+    <br>
+    <button type="submit">Votar</button>
+  </form>
+  <script>
+    document.getElementById('voteForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert("¡Gracias por votar! Tu voto ha sido registrado (simulado).");
+    });
+  </script>
+</body>
+</html>
