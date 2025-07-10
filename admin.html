@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Creadores en Desafío</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; background: #111; color: white; padding: 20px; }
+    h1, h2 { color: orange; }
+    #login-form, #panel { max-width: 600px; margin: auto; }
+    input, button { margin: 5px 0; padding: 10px; width: 100%; }
+    canvas { background: white; border-radius: 10px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Panel de Administración</h1>
+  <div id="login-form">
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="email" placeholder="Correo" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button onclick="login()">Entrar</button>
+    <p id="login-error" style="color:red;"></p>
+  </div>
+  <div id="panel" style="display:none;">
+    <h2>Resultados en Tiempo Real</h2>
+    <canvas id="grafica" width="400" height="400"></canvas>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <!-- 👇 AQUÍ VA EL SCRIPT, AL FINAL DEL BODY -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVI-3pcFBp6oyk9FiEvFl3CGBUjtjF6D0",
+      authDomain: "votaciones-creadores.firebaseapp.com",
+      projectId: "votaciones-creadores"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const loginForm = document.getElementById("login-form");
+    const panel = document.getElementById("panel");
+    const loginError = document.getElementById("login-error");
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        loginError.innerText = "Por favor completa todos los campos.";
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          loginForm.style.display = "none";
+          panel.style.display = "block";
+          obtenerDatos();
+        })
+        .catch(err => {
+          loginError.innerText = "Error: " + err.message;
+        });
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        loginForm.style.display = "block";
+        panel.style.display = "none";
+      });
+    }
+
+    async function obtenerDatos() {
+      const votos = {};
+      const snap = await db.collection("votos").get();
+      snap.forEach(doc => {
+        const nominado = doc.data().nominado;
+        votos[nominado] = (votos[nominado] || 0) + 1;
+      });
+      mostrarGrafica(votos);
+    }
+
+    function mostrarGrafica(data) {
+      const ctx = document.getElementById('grafica').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            label: 'Votos',
+            data: Object.values(data),
+            backgroundColor: 'orange'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+    </html>
