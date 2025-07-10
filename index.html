@@ -3,62 +3,101 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Votación - Creadores en Desafío</title>
+  <title>Admin - Creadores en Desafío</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; background: #111; color: white; padding: 20px; }
+    h1, h2 { color: orange; }
+    #login-form, #panel { max-width: 600px; margin: auto; }
+    input, button { margin: 5px 0; padding: 10px; width: 100%; }
+    canvas { background: white; border-radius: 10px; margin-top: 20px; }
+  </style>
 </head>
 <body>
-  <h1>Votación - Creadores en Desafío</h1>
-  <form id="formulario-voto">
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon1"> Anónimo 1</div>
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon2"> Anónimo 2</div>
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon3"> Anónimo 3</div>
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon4"> Anónimo 4</div>
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon5"> Anónimo 5</div>
-    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon6"> Anónimo 6</div>
-    <br>
-    <button type="submit">Votar</button>
-  </form>
+  <h1>Panel de Administración</h1>
+
+  <div id="login-form">
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="email" placeholder="Correo" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button onclick="login()">Entrar</button>
+    <p id="login-error" style="color:red;"></p>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <h2>Resultados en Tiempo Real</h2>
+    <canvas id="grafica" width="400" height="400"></canvas>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBVI-3pcFBp6oyk9FiEvFl3CGBUjtjF6D0",
       authDomain: "votaciones-creadores.firebaseapp.com",
       projectId: "votaciones-creadores",
-      storageBucket: "votaciones-creadores.firebasestorage.app",
-      messagingSenderId: "1016991751720",
-      appId: "1:1016991751720:web:e6783a02bec7c4ccda1f1d",
-      measurementId: "G-SDMWW1TB13"
     };
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const form = document.getElementById("formulario-voto");
-    const lastVoteKey = "votoHora";
-    const bloqueoHoras = 2;
+    const loginForm = document.getElementById("login-form");
+    const panel = document.getElementById("panel");
+    const loginError = document.getElementById("login-error");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const seleccionado = form.voto.value;
-      if (!seleccionado) return alert("Selecciona un nominado");
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          loginForm.style.display = "none";
+          panel.style.display = "block";
+          obtenerDatos();
+        })
+        .catch(err => {
+          loginError.innerText = "Error: " + err.message;
+        });
+    }
 
-      const ahora = Date.now();
-      const ultimoVoto = localStorage.getItem(lastVoteKey);
-      if (ultimoVoto && ahora - parseInt(ultimoVoto) < bloqueoHoras * 3600000) {
-        const minutos = Math.ceil((bloqueoHoras * 3600000 - (ahora - ultimoVoto)) / 60000);
-        return alert("Espera " + minutos + " minutos para volver a votar.");
-      }
-
-      await db.collection("votos").add({
-        nominado: seleccionado,
-        fecha: new Date()
+    function logout() {
+      auth.signOut().then(() => {
+        loginForm.style.display = "block";
+        panel.style.display = "none";
       });
+    }
 
-      localStorage.setItem(lastVoteKey, ahora.toString());
-      alert("¡Voto registrado!");
-      form.reset();
-    });
+    async function obtenerDatos() {
+      const votos = {};
+      const snap = await db.collection("votos").get();
+      snap.forEach(doc => {
+        const nominado = doc.data().nominado;
+        votos[nominado] = (votos[nominado] || 0) + 1;
+      });
+      mostrarGrafica(votos);
+    }
+
+    function mostrarGrafica(data) {
+      const ctx = document.getElementById('grafica').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            label: 'Votos',
+            data: Object.values(data),
+            backgroundColor: 'orange'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
