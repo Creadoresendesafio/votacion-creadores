@@ -2,78 +2,62 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Votación - Creadores en Desafío</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #002366, #f9a602);
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 {
-      color: #ffffff;
-    }
-    .nominado {
-      background-color: #ffffff10;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 10px auto;
-      max-width: 400px;
-    }
-    img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    button {
-      background-color: #f9a602;
-      color: #000;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <h1>Votación - Creadores en Desafío</h1>
-  <form id="voteForm">
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 1"><br>
-      <label><input type="radio" name="voto" value="anon1"> Anónimo 1</label>
-    </div>
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 2"><br>
-      <label><input type="radio" name="voto" value="anon2"> Anónimo 2</label>
-    </div>
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 3"><br>
-      <label><input type="radio" name="voto" value="anon3"> Anónimo 3</label>
-    </div>
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 4"><br>
-      <label><input type="radio" name="voto" value="anon4"> Anónimo 4</label>
-    </div>
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 5"><br>
-      <label><input type="radio" name="voto" value="anon5"> Anónimo 5</label>
-    </div>
-    <div class="nominado">
-      <img src="https://via.placeholder.com/100" alt="Anónimo 6"><br>
-      <label><input type="radio" name="voto" value="anon6"> Anónimo 6</label>
-    </div>
+  <form id="formulario-voto">
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon1"> Anónimo 1</div>
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon2"> Anónimo 2</div>
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon3"> Anónimo 3</div>
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon4"> Anónimo 4</div>
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon5"> Anónimo 5</div>
+    <div class="nominado"><img src="https://via.placeholder.com/100"><br><input type="radio" name="voto" value="anon6"> Anónimo 6</div>
     <br>
     <button type="submit">Votar</button>
   </form>
+
   <script>
-    document.getElementById('voteForm').addEventListener('submit', function(e) {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVI-3pcFBp6oyk9FiEvFl3CGBUjtjF6D0",
+      authDomain: "votaciones-creadores.firebaseapp.com",
+      projectId: "votaciones-creadores",
+      storageBucket: "votaciones-creadores.firebasestorage.app",
+      messagingSenderId: "1016991751720",
+      appId: "1:1016991751720:web:e6783a02bec7c4ccda1f1d",
+      measurementId: "G-SDMWW1TB13"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById("formulario-voto");
+    const lastVoteKey = "votoHora";
+    const bloqueoHoras = 2;
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      alert("¡Gracias por votar! Tu voto ha sido registrado (simulado).");
+      const seleccionado = form.voto.value;
+      if (!seleccionado) return alert("Selecciona un nominado");
+
+      const ahora = Date.now();
+      const ultimoVoto = localStorage.getItem(lastVoteKey);
+      if (ultimoVoto && ahora - parseInt(ultimoVoto) < bloqueoHoras * 3600000) {
+        const minutos = Math.ceil((bloqueoHoras * 3600000 - (ahora - ultimoVoto)) / 60000);
+        return alert("Espera " + minutos + " minutos para volver a votar.");
+      }
+
+      await db.collection("votos").add({
+        nominado: seleccionado,
+        fecha: new Date()
+      });
+
+      localStorage.setItem(lastVoteKey, ahora.toString());
+      alert("¡Voto registrado!");
+      form.reset();
     });
   </script>
 </body>
